@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Media Downloader</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #38bdf8;
+        }
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        input[type="url"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            background: #0f172a;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+        .btn-paste {
+            padding: 12px 16px;
+            background: #475569;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-paste:hover {
+            background: #64748b;
+        }
+        select, .btn-download {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        select {
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: #fff;
+        }
+        .btn-download {
+            background: #2563eb;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-download:hover {
+            background: #1d4ed8;
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        a.download-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Media Downloader</h2>
+    
+    <div class="input-group">
+        <input type="url" id="videoUrl" placeholder="ලින්ක් එක මෙතැනට පේස්ට් කරන්න..." required>
+        <button class="btn-paste" onclick="pasteLink()">Paste</button>
+    </div>
+
+    <select id="format">
+        <option value="mp4">Video (MP4)</option>
+        <option value="mp3">Audio (MP3)</option>
+    </select>
+
+    <button class="btn-download" onclick="startDownload()">Download Link ලබාගන්න</button>
+
+    <div id="status"></div>
+</div>
+
+<script>
+    async function pasteLink() {
+        try {
+            const text = await navigator.clipboard.readText();
+            document.getElementById('videoUrl').value = text;
+        } catch (err) {
+            alert('ਕლიප්බෝඩ් එකෙන් ලබා ගැනීමට නොහැකි විය, කරුණාකර අතින් පේස්ට් කරන්න.');
+        }
+    }
+
+    async function startDownload() {
+        const url = document.getElementById('videoUrl'.value);
+        const format = document.getElementById('format').value;
+        const status = document.getElementById('status');
+
+        const inputUrl = document.getElementById('videoUrl').value;
+        if (!inputUrl) {
+            alert("කරුණාකර ලින්ක් එකක් ඇතුළත් කරන්න!");
+            return;
+        }
+
+        status.innerText = "සකස් වෙමින් පවතී... කරුණාකර රැඳී සිටින්න...";
+
+        try {
+            const response = await fetch('/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: inputUrl, format: format })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                status.innerHTML = `<b>${result.title}</b><br><br>` +
+                    `<a href="${result.download_url}" class="download-link" target="_blank" download>Direct Download කරන්න</a>`;
+            } else {
+                status.innerText = "දෝෂයක් සිදු විය: ලින්ක් එක ලබා ගැනීමට නොහැකි විය.";
+            }
+        } catch (error) {
+            status.innerText = "සර්වර් එක සමඟ සම්බන්ධ වීමට නොහැකි විය!";
+        }
+    }
+</script>
+
+</body>
+</html>
